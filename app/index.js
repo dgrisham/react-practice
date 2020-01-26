@@ -11,11 +11,18 @@ function Square(props) {
 }
 
 class Board extends React.Component {
+  constructor(props) {
+    super(props);
+    this.numRows = 3;
+    this.numCols = 3;
+  }
+
   renderSquare(i) {
     return (
       <Square
         value={this.props.squares[i]}
         onClick={() => this.props.onClick(i)}
+        key={i}
       />
     );
   }
@@ -23,21 +30,11 @@ class Board extends React.Component {
   render() {
     return (
       <div>
-        <div className="board-row">
-          {this.renderSquare(0)}
-          {this.renderSquare(1)}
-          {this.renderSquare(2)}
-        </div>
-        <div className="board-row">
-          {this.renderSquare(3)}
-          {this.renderSquare(4)}
-          {this.renderSquare(5)}
-        </div>
-        <div className="board-row">
-          {this.renderSquare(6)}
-          {this.renderSquare(7)}
-          {this.renderSquare(8)}
-        </div>
+        {[...Array(this.numRows)].map((_, i) =>
+          <div className="board-row" key={i}>
+            {[...Array(this.numCols)].map((_, j) => this.renderSquare(3*i + j + 1))}
+          </div>
+        )}
       </div>
     );
   }
@@ -75,6 +72,7 @@ class Game extends React.Component {
       history: [null], // sequence of selected square indicies, e.g. [null, 3, 8, 1, 0, ...]
       stepNumber: 0,
       xIsNext: true,
+      sortAsc: true,
     };
   }
 
@@ -99,6 +97,12 @@ class Game extends React.Component {
       stepNumber: step,
       xIsNext: (step % 2) == 0,
     });
+  }
+
+  toggleSort() {
+    this.setState((prevState, _) => ({
+      sortAsc: !prevState.sortAsc,
+    }));
   }
 
   render() {
@@ -128,6 +132,8 @@ class Game extends React.Component {
       status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
     }
 
+    let altSortOrder = (this.state.sortAsc ? 'descending' : 'ascending')
+
     return (
       <div className="game">
         <div className="game-board">
@@ -138,7 +144,10 @@ class Game extends React.Component {
         </div>
         <div className="game-info">
           <div>{status}</div>
-          <ol>{moves}</ol>
+          <ol>{this.state.sortAsc ? moves : moves.reverse()}</ol>
+          <button onClick={() => this.toggleSort()}>
+            {'Sort moves ' + altSortOrder}
+          </button>
         </div>
       </div>
     );
