@@ -72,9 +72,7 @@ class Game extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      history: [{
-        squares: Array(9).fill(null),
-      }],
+      history: [], // sequence of selected square indicies, e.g. [3, 8, 1, 0, ...]
       stepNumber: 0,
       xIsNext: true,
     };
@@ -82,16 +80,15 @@ class Game extends React.Component {
 
   handleClick(i) {
     const history = this.state.history.slice(0, this.state.stepNumber + 1);
-    const current = history[history.length - 1];
-    const squares = current.squares.slice();
+    const squares = buildBoardFromHistory(history);
+
     if (calculateWinner(squares) || squares[i]) {
       return;
     }
+
     squares[i] = this.state.xIsNext ? 'X' : 'O';
     this.setState({
-      history: history.concat([{
-        squares: squares,
-      }]),
+      history: history.concat([i]),
       stepNumber: history.length,
       xIsNext: !this.state.xIsNext,
     });
@@ -106,11 +103,13 @@ class Game extends React.Component {
 
   render() {
     const history = this.state.history;
-    const current = history[this.state.stepNumber];
-    const winner = calculateWinner(current.squares);
+    const squares = buildBoardFromHistory(history.slice(0, this.state.stepNumber + 1));
+    const winner = calculateWinner(squares);
 
-    const moves = history.map((step, move) => {
-      const desc = move ? 'Go to move #' + move : 'Go to game start';
+    const moves = history.map((pos, move) => {
+      const desc = move
+        ? 'Go to move #' + move + ' (' + Math.floor(pos / 3) + ', ' + (pos % 3) + ')'
+        : 'Go to game start';
       return (
         <li key={move}>
           <button onClick={() => this.jumpTo(move)}>{desc}</button>
@@ -129,7 +128,7 @@ class Game extends React.Component {
       <div className="game">
         <div className="game-board">
           <Board
-            squares={current.squares}
+            squares={squares}
             onClick={i => this.handleClick(i)}
           />
         </div>
@@ -140,6 +139,14 @@ class Game extends React.Component {
       </div>
     );
   }
+}
+
+function buildBoardFromHistory(history) {
+  let board = Array(9).fill(null)
+  for (let i = 0; i < history.length; i++) {
+    board[history[i]] = (i % 2) === 0 ? 'X' : 'O'
+  }
+  return board
 }
 
 ReactDOM.render(
