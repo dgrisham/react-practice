@@ -72,7 +72,7 @@ class Game extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      history: [], // sequence of selected square indicies, e.g. [3, 8, 1, 0, ...]
+      history: [null], // sequence of selected square indicies, e.g. [null, 3, 8, 1, 0, ...]
       stepNumber: 0,
       xIsNext: true,
     };
@@ -142,11 +142,11 @@ class Game extends React.Component {
 }
 
 function buildBoardFromHistory(history) {
-  let board = Array(9).fill(null)
+  let board = Array(9).fill(null);
   for (let i = 0; i < history.length; i++) {
-    board[history[i]] = (i % 2) === 0 ? 'X' : 'O'
+    board[history[i]] = (i % 2) === 0 ? 'O' : 'X';
   }
-  return board
+  return board;
 }
 
 ReactDOM.render(
