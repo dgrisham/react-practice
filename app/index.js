@@ -4,7 +4,7 @@ import './index.css';
 
 function Square(props) {
   return (
-    <button className="square" onClick={props.onClick}>
+    <button className={props.className} onClick={props.onClick}>
       {props.value}
     </button>
   );
@@ -17,28 +17,66 @@ class Board extends React.Component {
     this.numCols = 3;
   }
 
-  renderSquare(i) {
+  renderSquare(i, className) {
     return (
       <Square
         value={this.props.squares[i]}
         onClick={() => this.props.onClick(i)}
         key={i}
+        className={className}
       />
     );
   }
 
   render() {
+    let classNames = Array(this.numRows * this.numCols + 1).fill('square')
+    if (this.props.winningSquares) {
+      for (let i = 0; i < this.props.winningSquares.length; i++) {
+        classNames[this.props.winningSquares[i]] = 'square-win';
+      }
+    }
+    console.log("classNames: ", classNames);
+
     return (
       <div>
         {[...Array(this.numRows)].map((_, i) =>
           <div className="board-row" key={i}>
-            {[...Array(this.numCols)].map((_, j) => this.renderSquare(3*i + j + 1))}
+            {
+              [...Array(this.numCols)].map((_, j) => this.renderSquare(rowColToIndex(i, j), classNames[rowColToIndex(i, j)]))
+            }
           </div>
         )}
       </div>
     );
   }
 }
+
+var rowColToIndex = (i, j) => 3*i + j
+
+// function calculateWinner(squares) {
+//   // square sequences to check
+//   const lines = [
+//     [0, 1, 2],
+//     [3, 4, 5],
+//     [6, 7, 8],
+//     [0, 3, 6],
+//     [1, 4, 7],
+//     [2, 5, 8],
+//     [0, 4, 8],
+//     [2, 4, 6],
+//   ];
+
+//   // check all sequences for matching square states
+//   for (let i = 0; i < lines.length; i ++) {
+//     const [a, b, c] = lines[i];
+//     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+//       return squares[a];
+//     }
+//   }
+
+//   // no matches
+//   return null;
+// }
 
 function calculateWinner(squares) {
   // square sequences to check
@@ -54,10 +92,10 @@ function calculateWinner(squares) {
   ];
 
   // check all sequences for matching square states
-  for (let i = 0; i < lines.length; i ++) {
+  for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i];
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
+      return {'player': squares[a], 'squares': lines[i]};
     }
   }
 
@@ -126,9 +164,11 @@ class Game extends React.Component {
     });
 
     let status;
-    if (winner) {
-      status = 'Winner: ' + winner;
-    } else {
+    if (winner && winner.player) {
+      status = 'Winner: ' + winner.player;
+    } else if (!squares.includes(null)) { // no winner, but all squares are full
+      status = 'Draw!'
+    } else { // no winner, game still playable
       status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
     }
 
@@ -140,6 +180,7 @@ class Game extends React.Component {
           <Board
             squares={squares}
             onClick={i => this.handleClick(i)}
+            winningSquares={winner && winner.squares}
           />
         </div>
         <div className="game-info">
@@ -157,7 +198,9 @@ class Game extends React.Component {
 function buildBoardFromHistory(history) {
   let board = Array(9).fill(null);
   for (let i = 0; i < history.length; i++) {
-    board[history[i]] = (i % 2) === 0 ? 'O' : 'X';
+    if (history[i] !== null) {
+      board[history[i]] = (i % 2) === 0 ? 'O' : 'X';
+    }
   }
   return board;
 }
