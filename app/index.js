@@ -82,7 +82,7 @@ class Game extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      history: [null], // sequence of selected square indicies, e.g. [null, 3, 8, 1, 0, ...]
+      history: [null], // sequence of selected square indices, e.g. [null, 3, 8, 1, 0, ...]
       stepNumber: 0,
       xIsNext: true,
       sortAsc: true,
